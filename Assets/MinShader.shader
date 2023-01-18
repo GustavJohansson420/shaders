@@ -3,8 +3,9 @@ Shader "Unlit/MinShader"
     Properties
     {
         _MainTex ("Texture", 2D) = "white" {}
+        _NoiseTex ("Texture", 2D) = "white" {}
         _Color ("Color", Color) = (1,1,1,1)
-        _Scale ("Scale", float) = 1
+        _Value ("Scale", Range(0,1)) = 1
     }
     SubShader
     {
@@ -35,9 +36,10 @@ Shader "Unlit/MinShader"
             };
 
             sampler2D _MainTex;
+            sampler2D _NoiseTex;
             float4 _MainTex_ST;
             fixed4 _Color;
-            float _Scale;
+            float _Value;
 
             v2f vert (appdata v)
             {
@@ -50,8 +52,20 @@ Shader "Unlit/MinShader"
 
             fixed4 frag (v2f i) : SV_Target
             {
+
                 fixed4 col = tex2D(_MainTex, i.uv);
+                i.uv.x += _Time.y;
+                fixed4 noise = tex2D(_NoiseTex, i.uv);
+
+                if(_Value > noise.r)
+                    discard;
+
                 col *= _Color;
+                
+                /*i.uv = i.uv * 2 - 1.5;
+                i.uv += sin(_Time.y);
+                float v = 1 - smoothstep(0.00001,0.9999999,length(i.uv));
+                col = fixed4(v,v,v,1);*/
 
                 return col;
             }
